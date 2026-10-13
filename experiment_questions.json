@@ -1,0 +1,73 @@
+[
+  {
+    "id": "birthdays",
+    "origin": "Adapted from Connor's birthday question",
+    "question": "Which calendar month and day has the most birthdays among people in the database? Include all ties. Return the birthday as MM-DD and the number of people.",
+    "reference_sql": "WITH birthday_counts AS (SELECT strftime('%m-%d', DOB) AS birthday, COUNT(*) AS people_count FROM person WHERE DOB IS NOT NULL GROUP BY strftime('%m-%d', DOB)) SELECT birthday, people_count FROM birthday_counts WHERE people_count = (SELECT MAX(people_count) FROM birthday_counts) ORDER BY birthday",
+    "expected_status": "answered"
+  },
+  {
+    "id": "provo_members",
+    "origin": "Adapted from Connor's gym membership question",
+    "question": "How many members have Provo Training Center as their home gym? Include inactive and banned memberships in the count.",
+    "reference_sql": "SELECT COUNT(*) AS member_count FROM member m JOIN gym_location g ON g.location_id = m.home_location WHERE g.name = 'Provo Training Center'",
+    "expected_status": "answered"
+  },
+  {
+    "id": "upgrades",
+    "origin": "Connor's membership upgrade question",
+    "question": "How many people have upgraded their gym membership plans?",
+    "reference_sql": null,
+    "expected_status": "unsupported",
+    "limitation": "The schema records current plans but no plan-change history. A premium plan does not prove an upgrade."
+  },
+  {
+    "id": "households",
+    "origin": "Adapted from Connor's shared household question",
+    "question": "How many members have another member at the same home gym who shares their primary address? Count each member once, include inactive and banned memberships, and treat a shared primary address as a household proxy.",
+    "reference_sql": "SELECT COUNT(*) AS member_count FROM member m JOIN person p ON p.person_id = m.person_id WHERE p.address_id IS NOT NULL AND EXISTS (SELECT 1 FROM member other_m JOIN person other_p ON other_p.person_id = other_m.person_id WHERE other_m.member_id <> m.member_id AND other_m.home_location = m.home_location AND other_p.address_id = p.address_id)",
+    "expected_status": "answered"
+  },
+  {
+    "id": "multiple_gyms",
+    "origin": "Adapted from the prior staff/garage assignment",
+    "question": "How many employees are assigned to more than one gym location? Include active and terminated employees.",
+    "reference_sql": "SELECT COUNT(*) AS employee_count FROM (SELECT employee_id FROM employee_location GROUP BY employee_id HAVING COUNT(DISTINCT location_id) > 1)",
+    "expected_status": "answered"
+  },
+  {
+    "id": "equipment_brands",
+    "origin": "Adapted from the prior tire-brand assignment",
+    "question": "What is the most common equipment brand across all gyms, counting each equipment row once? Include all ties and return the brand and item count.",
+    "reference_sql": "WITH brand_counts AS (SELECT brand, COUNT(*) AS item_count FROM equipment WHERE brand IS NOT NULL GROUP BY brand) SELECT brand, item_count FROM brand_counts WHERE item_count = (SELECT MAX(item_count) FROM brand_counts) ORDER BY brand",
+    "expected_status": "answered"
+  },
+  {
+    "id": "hourly_pay",
+    "origin": "Adapted from the prior average mechanic-pay assignment",
+    "question": "What is the average pay rate for active hourly employees, rounded to two decimal places? Exclude salaried employees.",
+    "reference_sql": "SELECT ROUND(AVG(a.pay_rate), 2) AS average_hourly_pay FROM employee e JOIN employee_account a ON a.employee_id = e.employee_id WHERE e.employment_status = 'active' AND e.is_hourly = TRUE",
+    "expected_status": "answered"
+  },
+  {
+    "id": "maintenance",
+    "origin": "Additional gym question",
+    "question": "How many unresolved maintenance tickets does each gym have? Include gyms with zero unresolved tickets and return gym name and ticket count.",
+    "reference_sql": "SELECT g.name, COUNT(m.maintenance_id) AS unresolved_count FROM gym_location g LEFT JOIN maintenance m ON m.location_id = g.location_id AND m.is_resolved = FALSE GROUP BY g.location_id, g.name ORDER BY g.name",
+    "expected_status": "answered"
+  },
+  {
+    "id": "visits",
+    "origin": "Additional gym question",
+    "question": "How many check-in visits were recorded at each gym during October 2026? Include gyms with no visits. Count visits rather than unique members, and return gym name and visit count.",
+    "reference_sql": "SELECT g.name, COUNT(c.check_in_id) AS visit_count FROM gym_location g LEFT JOIN check_in c ON c.location_id = g.location_id AND c.time >= '2026-10-01' AND c.time < '2026-11-01' GROUP BY g.location_id, g.name ORDER BY g.name",
+    "expected_status": "answered"
+  },
+  {
+    "id": "plans",
+    "origin": "Additional gym question",
+    "question": "How many memberships currently use each membership plan? Include inactive and banned memberships, and plans with zero members. Return plan name and member count.",
+    "reference_sql": "SELECT p.plan_name, COUNT(m.member_id) AS member_count FROM membership p LEFT JOIN member m ON m.membership_type = p.membership_id GROUP BY p.plan_name ORDER BY p.plan_name",
+    "expected_status": "answered"
+  }
+]

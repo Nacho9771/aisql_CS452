@@ -221,3 +221,14 @@ __marimo__/
 
 # OpenAPI Key
 config.json
+
+# Gym SQL assistant local runtime/secrets
+.deps/
+runs/
+db_config.json
+.env.*
+!config.example.json
+!db_config.example.json
+*.db-journal
+*.db-wal
+*.db-shm
